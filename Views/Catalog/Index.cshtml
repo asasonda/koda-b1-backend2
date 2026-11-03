@@ -22,6 +22,7 @@
             <td>Price</td>
             <td>Stock</td>
             <td>Category</td>
+            <td>Aksi</td>
         </tr>
         <tbody>
             @if (Model.Count == 0)
@@ -40,6 +41,7 @@
                             <td>@product.Price</td>
                             <td>@product.Stock</td>
                             <td>@product.Category</td>
+                            <td><button>Edit</button> <button>Delete</button></td>
                         </tr>
                     }
                 }
