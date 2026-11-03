@@ -10,7 +10,7 @@ Content-Type: application/json
 
 {
     "productCode" : "P0001",
-    "name" : "",
+    "name" : "Keyboard",
     "price": 50000,
     "stock": 10,
     "category": "elektronik"
@@ -28,3 +28,8 @@ Content-Type: application/json
     "stock": 5,
     "category": "elektronik"
 }
+
+## delete
+DELETE {{baseUrl}}/api/v1/products/P0001
+Accept: application/json
+Content-Type: application/json
