@@ -7,7 +7,7 @@ public interface IProductService
     IReadOnlyList<ProductResponse> GetAll();
     ProductResponse? GetByCode(string productCode);
     ProductResponse? Create(ProductRequest request);
-    ProductRequest? Update(string productCode, UpdateProductRequest request);
+    ProductResponse? Update(string productCode, UpdateProductRequest request);
 
     bool Delete(string productCode);
 }

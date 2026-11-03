@@ -32,3 +32,5 @@ D:\koda\C#\koda-b1-backend\src\KodaStore.Api\obj\Debug\net10.0\KodaStore.Api.pdb
 D:\koda\C#\koda-b1-backend\src\KodaStore.Api\obj\Debug\net10.0\KodaStore.Api.genruntimeconfig.cache
 D:\koda\C#\koda-b1-backend\src\KodaStore.Api\obj\Debug\net10.0\ref\KodaStore.Api.dll
 D:\koda\C#\koda-b1-backend\src\KodaStore.Api\obj\Debug\net10.0\KodaStore.Api.sourcelink.json
+D:\koda\C#\koda-b1-backend\src\KodaStore.Api\obj\Debug\net10.0\KodaStore.Api.RazorAssemblyInfo.cache
+D:\koda\C#\koda-b1-backend\src\KodaStore.Api\obj\Debug\net10.0\KodaStore.Api.RazorAssemblyInfo.cs
