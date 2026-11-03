@@ -10,7 +10,7 @@ Content-Type: application/json
 
 {
     "productCode" : "P0001",
-    "name" : "Keyboard",
+    "name" : "",
     "price": 50000,
     "stock": 10,
     "category": "elektronik"
