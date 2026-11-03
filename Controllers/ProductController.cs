@@ -1,6 +1,7 @@
 using KodaStore.Api.Data;
 using KodaStore.Api.DTOs;
 using KodaStore.Api.Models;
+using KodaStore.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KodaStore.Api.Controllers;
@@ -10,21 +11,18 @@ namespace KodaStore.Api.Controllers;
 
 public sealed class ProductController : ControllerBase
 {
-    private readonly InMemoryProductCatalog _catalog;
+    private readonly IProductService _service;
 
-    public ProductController(InMemoryProductCatalog catalog)
+    public ProductController(IProductService service)
     {
-        _catalog = catalog;
+        _service = service;
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ProductResponse>), StatusCodes.Status200OK)]
-
     public ActionResult<IReadOnlyList<Products>> GetAll()
     {
-        var products = _catalog.GetAll().Select(ProductResponse.FromModel).ToArray();
-
-        return Ok(products);
+        return Ok(_service.GetAll());
     }
 
 
@@ -34,18 +32,9 @@ public sealed class ProductController : ControllerBase
 
     public ActionResult<ProductResponse> GetByCode([FromRoute] string productCode)
     {
-        var product = _catalog.GetByCode(productCode);
+        var product = _service.GetByCode(productCode);
 
-        if(product is null)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Product Not found",
-                detail: $"No product was found for code {productCode}"
-            );
-        }
-
-        return Ok(ProductResponse.FromModel(product));
+        return product is null? Problem(statusCode: StatusCodes.Status404NotFound, title: "Data tidak ditemukan"): Ok(product);
     }
 
     [HttpPost]
@@ -53,28 +42,65 @@ public sealed class ProductController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public ActionResult<ProductResponse> Create([FromBody] ProductRequest request)
     {
-        var product = new Products(request.ProductCode, request.Name, request.Price, request.Stock, request.Category);
+        try
+        {
+            var product = _service.Create(request);
 
-        _catalog.AddProduct(product);
+            if(product is null)
+            {
+                return Problem(statusCode: StatusCodes.Status404NotFound, title: "Data tidak dapat di dibuat");
+            }
 
-        return CreatedAtAction(
-            actionName: nameof(GetByCode),
-            value: product,
-            routeValues: new{productCode = product.ProductCode}
+            return CreatedAtAction(
+                nameof(GetByCode),
+                new
+                {
+                    productCode = product.ProductCode
+                },
+                product
+            );
+        }
+        catch (System.Exception e)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "invalid create data",
+                detail: e.Message
+            );
+        }
+    }
+
+    [HttpDelete("{productCode}")]
+    [ProducesResponseType(typeof(ProductResponse),StatusCodes.Status200OK )]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public IActionResult Delete([FromRoute] string productCode)
+    {
+        return _service.Delete(productCode) ? NoContent() : Problem(
+            statusCode: StatusCodes.Status404NotFound,
+            title: "Gagal delete",
+            detail: $"gagal {productCode}"
         );
     }
 
     [HttpPut("{productCode}")]
     [ProducesResponseType(typeof(ProductResponse),StatusCodes.Status200OK )]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public ActionResult<ProductResponse> Update([FromRoute] string productCode, [FromBody] ProductRequest request)
+    public ActionResult<ProductResponse> Update([FromBody] UpdateProductRequest request, string productCode)
     {
-        var product = new Products(request.ProductCode, request.Name, request.Price, request.Stock, request.Category);
-        _catalog.UpdateProduct(product, productCode);
+        try
+        {
+            var existingProduct = _service.Update(productCode, request);
 
-        return Ok(
-            "sip"
-        );
-
+            return existingProduct is null ? Problem(statusCode: StatusCodes.Status404NotFound, title: "gagal update", detail: $"No product was found for code {productCode}") : Ok(existingProduct);
+        }
+        catch (System.Exception e)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "invalid update data",
+                detail: e.Message
+            );
+        }
     }
+
 }

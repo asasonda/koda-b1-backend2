@@ -4,30 +4,70 @@ namespace KodaStore.Api.Data;
 
 public sealed class InMemoryProductCatalog
 {
+    private readonly object _sync = new();
     private readonly List<Products> _products = [];
 
     public IReadOnlyList<Products> GetAll()
     {
-        return _products.ToArray();
+        lock (_sync)
+        {
+            return _products.ToArray();
+        }
+    }
+
+    public bool AddProductList(Products products)
+    {
+        lock (_sync)
+        {
+            if(_products.Any(p => string.Equals(p.ProductCode,products.ProductCode, StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+        }
+
+        _products.Add(products);
+        return true;
     }
 
     public Products? GetByCode(string productCode)
     {
-        return _products.FirstOrDefault(product => string.Equals(product.ProductCode, productCode.Trim(), StringComparison.OrdinalIgnoreCase));
+        lock (_sync)
+        {
+            return _products.FirstOrDefault(p => string.Equals(p.ProductCode, productCode.Trim(),StringComparison.OrdinalIgnoreCase));
+        }
     }
 
-    public void AddProduct(Products products)
+    public bool UpdateProductList(Products products)
     {
-        _products.Add(products);
+        lock (_sync)
+        {
+            var find = _products.FindIndex(p => string.Equals(p.ProductCode, products.ProductCode, StringComparison.OrdinalIgnoreCase));
+
+            if(find < 0)
+            {
+                return false;
+            }
+
+            _products[find] = products;
+
+            return true;
+        }
     }
 
-    public void UpdateProduct(Products updateProduct, string productCode)
+    public bool Delete(string productCode)
     {
-        var product = _products.FirstOrDefault(product => string.Equals(product.ProductCode, productCode.Trim(), StringComparison.OrdinalIgnoreCase));
-        product?.ProductCode = updateProduct.ProductCode;
-        product?.Name = updateProduct.Name;
-        product?.Price = updateProduct.Price;
-        product?.Stock = updateProduct.Stock;
-        product?.Category = updateProduct.Category;
+        lock (_sync)
+        {
+            var find = _products.FindIndex(p => string.Equals(p.ProductCode, productCode.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if(find < 0)
+            {
+                return false;
+            }
+
+            _products.RemoveAt(find);
+            return true;
+        }
     }
+
 }
